@@ -180,7 +180,7 @@ from parsel import Selector
 
 *response = requests.get('https://us.pycon.org/2024/schedule/tutorials/')
 
-sel = Selector(text=response.body)
+sel = Selector(text=response.text)
 for tutorial in sel.css('.calendar a::text').getall():
     print(tutorial)
 ```
@@ -196,7 +196,7 @@ from parsel import Selector
 
 response = requests.get('https://us.pycon.org/2024/schedule/tutorials/')
 
-sel = Selector(text=response.body)
+sel = Selector(text=response.text)
 *for tutorial in sel.css('.calendar a::text').getall():
 *   print(tutorial)
 ```
@@ -433,6 +433,34 @@ class: center, middle
 
 ---
 
+# CSS Selectors Examples
+
+```
+response.css("h1")
+```
+
+```
+response.css("ul#offers")
+```
+
+```
+response.css(".product")
+```
+
+```
+response.css("ul#offers .product a::attr(href)")
+```
+
+```
+response.css("ul#offers .product *::text")
+```
+
+```
+response.css("ul#offers .product p::text")
+```
+
+---
+
 # Parsing Data
 
 ```
@@ -487,6 +515,62 @@ class PyConUS2024Spider(scrapy.Spider):
 
 ---
 
+# XPath Examples
+
+```
+response.xpath("//h1")
+```
+
+```
+response.xpath("//h1[2]")
+```
+
+```
+response.xpath("//ul[@id='offers']")
+```
+
+```
+response.xpath("//li/a/@href")
+```
+
+```
+response.xpath("//li//text()")
+```
+
+```
+response.xpath("//li[@class='ad']/following-sibling::li")
+```
+---
+
+
+# Parsing Data
+
+```
+# code/pyconus2024-xpath.py
+import scrapy
+
+class PyConUS2024Spider(scrapy.Spider):
+    name = "pyconus"
+
+    start_urls = [
+        'https://us.pycon.org/2024/schedule/tutorials/',
+    ]
+
+    def parse(self, response):
+        for tutorial in response.xpath('//div[@class="presentation"]'):
+            yield {
+                'speaker': tutorial.xpath(
+                    './div[@class="speaker"]/text()'
+                ).get().strip(),
+                'url': response.urljoin(
+                    tutorial.xpath('.//a/@href').get()
+                ),
+                'title': tutorial.xpath('.//a/text()').get()
+            }
+```
+
+---
+
 # Parsing Data
 
 ```
@@ -503,7 +587,9 @@ class PyConUS2024Spider(scrapy.Spider):
     def parse(self, response):
 *       for tutorial in response.xpath('//div[@class="presentation"]'):
             yield {
-*               'speaker': tutorial.xpath('./div[@class="speaker"]/text()').get().strip(),
+*               'speaker': tutorial.xpath(
+*                   './div[@class="speaker"]/text()'
+*               ).get().strip(),
                 'url': response.urljoin(
 *                   tutorial.xpath('.//a/@href').get()
                 ),
@@ -540,62 +626,6 @@ class PyConUS2024Spider(scrapy.Spider):
 ```
 
 ### XPath and CSS Selector
-
----
-
-# CSS Selectors Examples
-
-```
-response.css("h1")
-```
-
-```
-response.css("ul#offers")
-```
-
-```
-response.css(".product")
-```
-
-```
-response.css("ul#offers .product a::attr(href)")
-```
-
-```
-response.css("ul#offers .product *::text")
-```
-
-```
-response.css("ul#offers .product p::text")
-```
-
----
-
-# XPath Examples
-
-```
-response.xpath("//h1")
-```
-
-```
-response.xpath("//h1[2]")
-```
-
-```
-response.xpath("//ul[@id='offers']")
-```
-
-```
-response.xpath("//li/a/@href")
-```
-
-```
-response.xpath("//li//text()")
-```
-
-```
-response.xpath("//li[@class='ad']/following-sibling::li")
-```
 
 ---
 
@@ -661,7 +691,7 @@ Your task is to extract all of this information and export it into a JSON lines 
 
 On this page, you will find a collection of quotes along with their respective authors.
 Each quote is accompanied by a link that directs you to a dedicated page providing
-additional details about the author, the quote itself, and a list of associated tags.
+additional details about the **author**, the **quote** itself, and a list of **associated tags**.
 
 Your task is to extract all of this information and export it into a JSON lines file.
 
@@ -922,11 +952,11 @@ class QuotesSpider(scrapy.Spider):
 
 **Target:** https://quotes.toscrape.com/scroll
 
-There has been another modification to the layout. Our quotes page now features an infinite
+Our quotes page now features an infinite
 scroll functionality, meaning that new content is dynamically loaded as you reach the bottom of the page.
 
 **TIP**: To understand this behavior, open your browser and access our target page. Press **F12** to
-open the developer tools and select the "_Network_" tab. Observe what occurs in the network requests
+open the **developer tools** and select the "_Network_" tab. Observe what occurs in the network requests
 when you navigate to the end of the page.
 
 ---
@@ -963,7 +993,6 @@ class QuotesScrollSpider(scrapy.Spider):
 
     def parse(self, response):
         data = response.json()
-        current_page = data.get("page")
 
         for quote in data.get("quotes"):
             yield {
@@ -974,6 +1003,8 @@ class QuotesScrollSpider(scrapy.Spider):
                 ),
                 "tags": quote.get("tags"),
             }
+
+        current_page = data.get("page")
 
         if data.get("has_next"):
             next_page = current_page + 1
@@ -999,7 +1030,6 @@ class QuotesScrollSpider(scrapy.Spider):
 
     def parse(self, response):
         data = response.json()
-        current_page = data.get("page")
 
         for quote in data.get("quotes"):
             yield {
@@ -1010,6 +1040,8 @@ class QuotesScrollSpider(scrapy.Spider):
                 ),
                 "tags": quote.get("tags"),
             }
+
+        current_page = data.get("page")
 
         if data.get("has_next"):
             next_page = current_page + 1
@@ -1035,7 +1067,6 @@ class QuotesScrollSpider(scrapy.Spider):
 
     def parse(self, response):
 *       data = response.json()
-        current_page = data.get("page")
 
         for quote in data.get("quotes"):
             yield {
@@ -1046,6 +1077,8 @@ class QuotesScrollSpider(scrapy.Spider):
                 ),
                 "tags": quote.get("tags"),
             }
+
+        current_page = data.get("page")
 
         if data.get("has_next"):
             next_page = current_page + 1
@@ -1071,43 +1104,6 @@ class QuotesScrollSpider(scrapy.Spider):
 
     def parse(self, response):
         data = response.json()
-*       current_page = data.get("page")
-
-        for quote in data.get("quotes"):
-            yield {
-                "quote": quote.get("text"),
-                "author": quote.get("author").get("name"),
-                "author_url": response.urljoin(
-                    quote.get("author").get("goodreads_link")
-                ),
-                "tags": quote.get("tags"),
-            }
-
-*       if data.get("has_next"):
-*           next_page = current_page + 1
-*           yield scrapy.Request(
-*               self.api_url.format(page=next_page),
-*           )
-```
-
----
-
-```python
-# code/exercise-2.py
-import scrapy
-
-
-class QuotesScrollSpider(scrapy.Spider):
-    name = "quotes_scroll"
-    allowed_domains = ["quotes.toscrape.com"]
-    api_url = "https://quotes.toscrape.com/api/quotes?page={page}"
-
-    def start_requests(self):
-        yield scrapy.Request(self.api_url.format(page=1))
-
-    def parse(self, response):
-        data = response.json()
-        current_page = data.get("page")
 
 *       for quote in data.get("quotes"):
 *           yield {
@@ -1119,6 +1115,8 @@ class QuotesScrollSpider(scrapy.Spider):
 *               "tags": quote.get("tags"),
 *           }
 
+        current_page = data.get("page")
+
         if data.get("has_next"):
             next_page = current_page + 1
             yield scrapy.Request(
@@ -1128,12 +1126,48 @@ class QuotesScrollSpider(scrapy.Spider):
 
 ---
 
+```python
+# code/exercise-2.py
+import scrapy
+
+
+class QuotesScrollSpider(scrapy.Spider):
+    name = "quotes_scroll"
+    allowed_domains = ["quotes.toscrape.com"]
+    api_url = "https://quotes.toscrape.com/api/quotes?page={page}"
+
+    def start_requests(self):
+        yield scrapy.Request(self.api_url.format(page=1))
+
+    def parse(self, response):
+        data = response.json()
+
+        for quote in data.get("quotes"):
+            yield {
+                "quote": quote.get("text"),
+                "author": quote.get("author").get("name"),
+                "author_url": response.urljoin(
+                    quote.get("author").get("goodreads_link")
+                ),
+                "tags": quote.get("tags"),
+            }
+
+*       current_page = data.get("page")
+*
+*       if data.get("has_next"):
+*           next_page = current_page + 1
+*           yield scrapy.Request(
+*               self.api_url.format(page=next_page),
+*           )
+```
+
+---
+
 # Exercise 3
 
 **Target:** https://quotes.toscrape.com/js/
 
-The spider you created in the first exercise has ceased to function. Although no errors
-are evident in the logs, the spider is not returning any data.
+The spider you created in the first exercise has ceased to function. Although no errors are evident in the logs, the spider is not returning any data.
 
 **TIP**: To troubleshoot, open your browser and navigate to our target page.
 Press **Ctrl+U** (_View Page Source_) to inspect the HTML content of the page.
