@@ -23,6 +23,5 @@ $ git clone https://github.com/rennerocha/pyconus2024-tutorial pyconus2024-tutor
 $ cd pyconus2024-tutorial
 $ python -m venv .venv
 $ source .venv/bin/activate
-$ cd code
-$ pip install -r requirements
+$ pip install -r requirements.txt
 ```
