@@ -7,15 +7,9 @@ class QuotesSpider(scrapy.Spider):
     start_urls = ["https://quotes.toscrape.com"]
 
     def parse(self, response):
-        quotes = response.css(".quote")
-        for quote in quotes:
-            yield {
-                "quote": quote.css(".text::text").get(),
-                "author": quote.css(".author::text").get(),
-                "author_url": response.urljoin(quote.css("span a::attr(href)").get()),
-                "tags": quote.css(".tag *::text").getall(),
-            }
+        # 1. Get the list of quotes availabe at the page
 
-        yield scrapy.Request(
-            response.urljoin(response.css(".next a::attr(href)").get())
-        )
+        # 2. Parse each quote found and yield the quote item
+
+        # 3. Follow the next page link
+        ...
